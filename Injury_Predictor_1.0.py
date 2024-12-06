@@ -1,7 +1,7 @@
 # Import necessary libraries
 import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
+import plotly.graph_objects as go
 
 # Streamlit App Title
 st.title("NBA Injury Predictor")
@@ -100,11 +100,58 @@ if uploaded_files:
     # Step 7: Visualizations
     st.subheader("Visualizations")
 
-    # Combined averages bar chart
-    st.bar_chart(combined_stats.T)
+    # Plotly bar chart for combined averages
+    fig_combined = go.Figure()
 
-    # Total changes bar chart
-    st.bar_chart(total_changes)
+    # Add Pre-Injury data
+    fig_combined.add_trace(go.Bar(
+        x=combined_stats.index,
+        y=combined_stats["Pre-Injury"],
+        name="Pre-Injury"
+    ))
+
+    # Add Post-Injury data
+    fig_combined.add_trace(go.Bar(
+        x=combined_stats.index,
+        y=combined_stats["Post-Injury"],
+        name="Post-Injury"
+    ))
+
+    # Configure layout
+    fig_combined.update_layout(
+        barmode="group",
+        title="Combined Average On-Court Stats: Pre-Injury vs. Post-Injury",
+        xaxis_title="Statistics",
+        yaxis_title="Average Value",
+        xaxis=dict(tickangle=45),
+        legend_title="Injury Status"
+    )
+
+    # Display the grouped bar chart
+    st.plotly_chart(fig_combined)
+
+    # Plotly bar chart for total changes
+    fig_changes = go.Figure()
+
+    # Add total changes
+    fig_changes.add_trace(go.Bar(
+        x=total_changes.index,
+        y=total_changes.values,
+        name="Total Changes",
+        marker_color='orange'
+    ))
+
+    # Configure layout
+    fig_changes.update_layout(
+        title="Total Changes in On-Court Stats: Post-Injury vs. Pre-Injury",
+        xaxis_title="Statistics",
+        yaxis_title="Total Change",
+        xaxis=dict(tickangle=45),
+        showlegend=False
+    )
+
+    # Display the total changes bar chart
+    st.plotly_chart(fig_changes)
 
     # Option to download processed data
     csv = combined_df.to_csv(index=False).encode('utf-8')
