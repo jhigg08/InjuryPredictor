@@ -1,105 +1,118 @@
 # Import necessary libraries
 import pandas as pd
 import matplotlib.pyplot as plt
+import streamlit as st
 
-# Step 1: Manually Load Each CSV File
-derrick_rose_df = pd.read_csv('C:/Users/drako/OneDrive/Desktop/Jake Professional/Projects/CTP Basketball/Derrick_Rose_Stats.csv')
-klay_thompson_df = pd.read_csv('C:/Users/drako/OneDrive/Desktop/Jake Professional/Projects/CTP Basketball/Klay_Thompson_Stats.csv')
-jamal_murray_df = pd.read_csv('C:/Users/drako/OneDrive/Desktop/Jake Professional/Projects/CTP Basketball/Jamal_Murray_Stats.csv')
-rajon_rondo_df = pd.read_csv('C:/Users/drako/OneDrive/Desktop/Jake Professional/Projects/CTP Basketball/Rajon_Rondo_Stats.csv')
-ricky_rubio_df = pd.read_csv('C:/Users/drako/OneDrive/Desktop/Jake Professional/Projects/CTP Basketball/Ricky_Rubio_Stats.csv')
+# Streamlit App Title
+st.title("NBA Injury Predictor")
 
-# Step 2: Add Player Names to Each DataFrame
-derrick_rose_df["Player"] = "Derrick Rose"
-klay_thompson_df["Player"] = "Klay Thompson"
-jamal_murray_df["Player"] = "Jamal Murray"
-rajon_rondo_df["Player"] = "Rajon Rondo"
-ricky_rubio_df["Player"] = "Ricky Rubio"
-
-# Step 3: Combine All DataFrames
-combined_df = pd.concat([derrick_rose_df, klay_thompson_df, jamal_murray_df, ricky_rubio_df, rajon_rondo_df])
-
-# Standardize column names
-combined_df.columns = combined_df.columns.str.strip().str.lower()
-
-# Step 4: Clean the Data
-# Replace "Did not play" with NaN
-combined_df.replace("Did not play", pd.NA, inplace=True)
-
-# Convert numeric columns to proper types
-numeric_cols = [
-    "g", "gs", "mp", "fg", "fga", "fg%", "3p", "3pa", "3p%", "2p", "2pa", "2p%", 
-    "efg%", "ft", "fta", "ft%", "orb", "drb", "trb", "ast", "stl", "blk", "tov", "pf", "pts"
-]
-combined_df[numeric_cols] = combined_df[numeric_cols].apply(pd.to_numeric, errors="coerce")
-
-# Drop rows with missing games or points
-combined_df.dropna(subset=["g", "pts"], inplace=True)
-
-# Filter out specific seasons where players played fewer than the minimum games
-min_games_played = 65  # Set your threshold for games played
-combined_df = combined_df[combined_df["g"] >= min_games_played]
-
-
-# Step 5: Add Pre- and Post-Injury Labels
-injury_years = {
-    "derrick rose": 2012,
-    "klay thompson": 2019,
-    "jamal murray": 2021,
-    "rajon rondo" : 2013,
-    "ricky rubio": 2012
-}
-
-combined_df["injury_status"] = combined_df.apply(
-    lambda row: "Pre-Injury" if int(row["season"][:4]) < injury_years.get(row["player"].lower(), 9999) else "Post-Injury",
-    axis=1
+# Step 1: Upload CSV Files
+uploaded_files = st.file_uploader(
+    "Upload Player Stats CSV Files (one or more):",
+    accept_multiple_files=True,
+    type=["csv"]
 )
 
-# Step 6: Analyze the Data (Combined On-Court Stats Only)
-# Select only on-court performance stats
-on_court_stats = [
-    "fg", "fga", "fg%", "3p", "3pa", "3p%", "2p", "2pa", "2p%", 
-    "efg%", "ft", "fta", "ft%", "orb", "drb", "trb", "ast", "stl", "blk", "tov", "pts"
-]
+if uploaded_files:
+    dataframes = []
+    injury_years = {}
 
+    # Step 2: Process Uploaded Files
+    for uploaded_file in uploaded_files:
+        # Read each file into a DataFrame
+        df = pd.read_csv(uploaded_file)
 
-# Calculate combined averages for pre- and post-injury
-combined_stats = combined_df.groupby("injury_status")[on_court_stats].mean()
+        # Extract player name from the file name
+        player_name = uploaded_file.name.replace("_Stats.csv", "").replace("_", " ").title()
 
-# Calculate total changes instead of percentage changes
-absolute_changes = combined_stats.loc["Post-Injury"] - combined_stats.loc["Pre-Injury"]
+        # Allow user to input injury year for the player
+        injury_year = st.number_input(
+            f"Enter the injury year for {player_name}:", min_value=1900, max_value=2100, step=1
+        )
 
-# Identify the stat with the greatest total change
-most_changed_stat = absolute_changes.abs().idxmax()
-max_total_change = absolute_changes[most_changed_stat]  # Get the actual total change value
+        # Store the injury year
+        injury_years[player_name] = injury_year
 
-# Determine if the change is positive or negative
-change_direction = "increased" if max_total_change > 0 else "decreased"
+        # Add Player Name column
+        df["Player"] = player_name
+        dataframes.append(df)
 
-# Display the results
-print("\nCombined Pre/Post-Injury On-Court Averages:")
-print(combined_stats)
-print("\nTotal Changes (Post-Injury - Pre-Injury):")
-print(absolute_changes)
-print(f"\nStatistic with the most total change: {most_changed_stat}")
-print(f"Total Change Value: {max_total_change:.2f} ({change_direction})")
+    # Combine all DataFrames
+    combined_df = pd.concat(dataframes, ignore_index=True)
 
-# Visualize Combined Averages for All Players
-combined_stats.T.plot(kind="bar", figsize=(14, 8))  # Transpose to show stats on the X-axis
-plt.title("Combined Average On-Court Stats: Pre-Injury vs. Post-Injury")
-plt.xlabel("Statistics")
-plt.ylabel("Average Value")
-plt.xticks(rotation=45)
-plt.legend(title="Injury Status", loc="upper right")
-plt.tight_layout()
-plt.show()
+    # Standardize column names
+    combined_df.columns = combined_df.columns.str.strip().str.lower()
 
-# Visualize Total Changes
-absolute_changes.plot(kind="bar", figsize=(14, 6), color='orange')
-plt.title("Total Changes in On-Court Stats: Post-Injury vs. Pre-Injury")
-plt.xlabel("Statistics")
-plt.ylabel("Total Change (Post-Injury - Pre-Injury)")
-plt.xticks(rotation=45)
-plt.axhline(0, color="black", linewidth=1, linestyle="--")
-plt.tight_layout()
-plt.show()
+    # Step 3: Clean the Data
+    # Replace "Did not play" with NaN
+    combined_df.replace("Did not play", pd.NA, inplace=True)
+
+    # Convert numeric columns to proper types
+    numeric_cols = [
+        "g", "gs", "mp", "fg", "fga", "fg%", "3p", "3pa", "3p%", "2p", "2pa", "2p%",
+        "efg%", "ft", "fta", "ft%", "orb", "drb", "trb", "ast", "stl", "blk", "tov", "pf", "pts"
+    ]
+    combined_df[numeric_cols] = combined_df[numeric_cols].apply(pd.to_numeric, errors="coerce")
+
+    # Drop rows with missing games or points
+    combined_df.dropna(subset=["g", "pts"], inplace=True)
+
+    # Filter out seasons where players played fewer than the minimum games
+    min_games_played = st.slider("Set Minimum Games Played to Include a Season:", min_value=1, max_value=82, value=65)
+    combined_df = combined_df[combined_df["g"] >= min_games_played]
+
+    # Step 4: Add Pre- and Post-Injury Labels
+    combined_df["injury_status"] = combined_df.apply(
+        lambda row: "Pre-Injury" if int(row["season"][:4]) < injury_years.get(row["player"], 9999) else "Post-Injury",
+        axis=1
+    )
+
+    # Step 5: Analyze the Data
+    # Select only on-court performance stats
+    on_court_stats = [
+        "fg", "fga", "fg%", "3p", "3pa", "3p%", "2p", "2pa", "2p%",
+        "efg%", "ft", "fta", "ft%", "orb", "drb", "trb", "ast", "stl", "blk", "tov", "pts"
+    ]
+
+    # Calculate combined averages for pre- and post-injury
+    combined_stats = combined_df.groupby("injury_status")[on_court_stats].mean()
+
+    # Calculate total changes
+    total_changes = combined_stats.loc["Post-Injury"] - combined_stats.loc["Pre-Injury"]
+
+    # Identify the stat with the greatest total change
+    most_changed_stat = total_changes.abs().idxmax()
+    max_total_change = total_changes[most_changed_stat]
+
+    # Determine if the change is positive or negative
+    change_direction = "increased" if max_total_change > 0 else "decreased"
+
+    # Step 6: Display Results in Streamlit
+    st.subheader("Combined Pre/Post-Injury On-Court Averages")
+    st.dataframe(combined_stats)
+
+    st.subheader("Total Changes (Post-Injury - Pre-Injury)")
+    st.dataframe(total_changes)
+
+    st.markdown(f"**Statistic with the most total change:** {most_changed_stat}")
+    st.markdown(f"**Total Change Value:** {max_total_change:.2f} ({change_direction})")
+
+    # Step 7: Visualizations
+    st.subheader("Visualizations")
+
+    # Combined averages bar chart
+    st.bar_chart(combined_stats.T)
+
+    # Total changes bar chart
+    st.bar_chart(total_changes)
+
+    # Option to download processed data
+    csv = combined_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        "Download Processed Data",
+        data=csv,
+        file_name="processed_player_stats.csv",
+        mime="text/csv"
+    )
+else:
+    st.warning("Please upload at least one CSV file to proceed.")
