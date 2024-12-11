@@ -10,12 +10,13 @@ left_col, middle_col, right_col = st.columns([1, 3, 1])  # Adjust column width p
 
 # Add images to the left and right columns
 with left_col:
-    st.image("images/nbapic1.jpg", caption="Amar'e Stoudemire - Knicks", use_column_width=True)
-    st.image("images/nbapic2.jpg", caption="Jimmy Butler - Heat", use_column_width=True)
+    st.image("images/nbapic1.jpg", caption="Amar'e Stoudemire - Knicks", use_container_width=True)
+    st.image("images/nbapic2.jpg", caption="Jimmy Butler - Heat", use_container_width=True)
 
 with right_col:
-    st.image("images/nbapic3.jpg", caption="Kawhi Leonard - Raptors", use_column_width=True)
-    st.image("images/nbapic4.jpg", caption="Kobe Bryant - Lakers", use_column_width=True)
+    st.image("images/nbapic3.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)
+    st.image("images/nbapic4.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
+
 
 # Add content to the middle column
 with middle_col:
