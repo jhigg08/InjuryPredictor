@@ -126,10 +126,18 @@ if selected_position:
     
     st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
-    # Visualizations
-    st.subheader("Visualizations")
+   # Visualizations
+st.subheader("Visualizations")
+col1, col2 = st.columns(2)  # Create two columns
+
+with col1:
+    st.write("Combined Stats")
     st.bar_chart(combined_stats.T)
+
+with col2:
+    st.write("Total Changes")
     st.bar_chart(total_changes)
+
 
 # Add bottom image
 st.image("images/nbapic1.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
