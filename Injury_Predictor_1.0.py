@@ -66,13 +66,23 @@ if selected_position:
         try:
             df = pd.read_csv(file_path)
             df["Player"] = player_name
+
+            # Ensure the "season" column exists and is properly formatted
+            if "season" not in df.columns:
+                st.error(f"File for {player_name} is missing a 'season' column.")
+                continue
+
+            # Assign Pre/Post-Injury labels
             df["Injury Status"] = df.apply(
-                lambda row: "Pre-Injury" if int(row["season"][:4]) < injury_year else "Post-Injury",
+                lambda row: "Pre-Injury" if int(str(row["season"])[:4]) < injury_year else "Post-Injury",
                 axis=1
             )
             dataframes.append(df)
         except FileNotFoundError:
             st.error(f"File not found for {player_name}: {file_path}")
+            continue
+        except ValueError:
+            st.error(f"Invalid 'season' data for {player_name}. Ensure 'season' is formatted correctly.")
             continue
 
     # Combine data for all players in the selected position
