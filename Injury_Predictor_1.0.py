@@ -1,6 +1,7 @@
 # Import necessary libraries
 import pandas as pd
 import streamlit as st
+import altair as alt
 
 # Streamlit App Title
 st.title("NBA Injury Predictor by Position")
@@ -127,16 +128,21 @@ if selected_position:
     st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
    # Visualizations
-st.subheader("Visualizations")
-col1, col2 = st.columns(2)  # Create two columns
+# Prepare data for visualization
+combined_stats_melted = combined_stats.reset_index().melt(id_vars="injury_status", var_name="Statistic", value_name="Value")
 
-with col1:
-    st.write("Combined Stats")
-    st.bar_chart(combined_stats.T)
+# Create a side-by-side bar chart
+side_by_side_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
+    x=alt.X("Statistic:N", title="Statistic"),
+    y=alt.Y("Value:Q", title="Value"),
+    color=alt.Color("injury_status:N", title="Injury Status"),
+    column=alt.Column("injury_status:N", title=None, spacing=5)
+).properties(
+    width=300,  # Adjust width for better appearance
+    height=400
+)
 
-with col2:
-    st.write("Total Changes")
-    st.bar_chart(total_changes)
+st.altair_chart(side_by_side_chart)
 
 
 # Add bottom image
