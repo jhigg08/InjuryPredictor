@@ -117,13 +117,14 @@ if selected_position:
     st.subheader(f"Combined Pre/Post-Injury On-Court Averages for {selected_position}")
     st.dataframe(combined_stats)
 
-    st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
-
+   
     st.subheader(f"Total Changes (Post-Injury - Pre-Injury) for {selected_position}")
     st.dataframe(total_changes)
 
     st.markdown(f"**Statistic with the most total change:** {most_changed_stat}")
     st.markdown(f"**Total Change Value:** {max_total_change:.2f} ({change_direction})")
+    
+    st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
     # Visualizations
     st.subheader("Visualizations")
