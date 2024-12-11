@@ -144,6 +144,8 @@ side_by_side_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
 
 st.altair_chart(side_by_side_chart)
 
+ st.bar_chart(total_changes)
+
 
 # Add bottom image
 st.image("images/nbapic1.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
