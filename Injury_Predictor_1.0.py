@@ -128,23 +128,48 @@ if selected_position:
     st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
    # Visualizations
-# Prepare data for visualization
-combined_stats_melted = combined_stats.reset_index().melt(id_vars="injury_status", var_name="Statistic", value_name="Value")
+# Prepare data for the combined stats chart
+combined_stats_melted = combined_stats.reset_index().melt(
+    id_vars="injury_status", var_name="Statistic", value_name="Value"
+)
 
-# Create a side-by-side bar chart
-side_by_side_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
-    x=alt.X("Statistic:N", title="Statistic"),
-    y=alt.Y("Value:Q", title="Value"),
+# Create a side-by-side bar chart for combined stats
+combined_stats_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
+    x=alt.X("Statistic:N", title="Statistic", sort=None),
+    y=alt.Y("Value:Q", title="Average Value"),
     color=alt.Color("injury_status:N", title="Injury Status"),
-    column=alt.Column("injury_status:N", title=None, spacing=5)
+    tooltip=["Statistic", "Value", "injury_status"]
 ).properties(
-    width=300,  # Adjust width for better appearance
+    title="Pre-Injury vs Post-Injury Stats",
+    width=600,
     height=400
 )
 
-st.altair_chart(side_by_side_chart)
+# Display the combined stats chart
+st.altair_chart(combined_stats_chart)
 
- st.bar_chart(total_changes)
+# Prepare data for total changes
+total_changes_df = total_changes.reset_index()
+total_changes_df.columns = ["Statistic", "Value"]
+
+# Create a bar chart for total changes
+total_changes_chart = alt.Chart(total_changes_df).mark_bar().encode(
+    x=alt.X("Statistic:N", title="Statistic", sort=None),
+    y=alt.Y("Value:Q", title="Total Change"),
+    tooltip=["Statistic", "Value"],
+    color=alt.condition(
+        alt.datum.Value > 0,
+        alt.value("green"),  # Positive changes in green
+        alt.value("red")    # Negative changes in red
+    )
+).properties(
+    title="Total Changes (Post-Injury - Pre-Injury)",
+    width=600,
+    height=400
+)
+
+# Display the total changes chart
+st.altair_chart(total_changes_chart)
 
 
 # Add bottom image
