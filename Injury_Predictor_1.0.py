@@ -126,10 +126,48 @@ if selected_position:
     
     st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
-    # Visualizations
-    st.subheader("Visualizations")
-    st.bar_chart(combined_stats.T)
-    st.bar_chart(total_changes)
+    import altair as alt
+
+# Prepare the data for Altair
+combined_stats.reset_index(inplace=True)
+melted_stats = combined_stats.melt(id_vars=["injury_status"], var_name="Stat", value_name="Value")
+
+# Create a side-by-side bar chart
+bar_chart = alt.Chart(melted_stats).mark_bar().encode(
+    x=alt.X("Stat:N", title="Statistic"),
+    y=alt.Y("Value:Q", title="Average Value"),
+    color="injury_status:N",  # Differentiates Pre-Injury and Post-Injury
+    tooltip=["injury_status:N", "Stat:N", "Value:Q"]
+).properties(
+    width=600,
+    height=400
+)
+
+# Display the Altair chart in Streamlit
+st.subheader("Side-by-Side Bar Chart - Combined Stats")
+st.altair_chart(bar_chart, use_container_width=True)
+
+# Total changes visualized as a bar chart
+total_changes_df = total_changes.reset_index()
+total_changes_df.columns = ["Stat", "Change"]
+
+total_changes_chart = alt.Chart(total_changes_df).mark_bar().encode(
+    x=alt.X("Stat:N", title="Statistic"),
+    y=alt.Y("Change:Q", title="Change in Value"),
+    color=alt.condition(
+        alt.datum.Change > 0,  # Highlight positive and negative changes
+        alt.value("green"),  # Positive
+        alt.value("red")     # Negative
+    ),
+    tooltip=["Stat:N", "Change:Q"]
+).properties(
+    width=600,
+    height=400
+)
+
+st.subheader("Total Changes (Post-Injury - Pre-Injury)")
+st.altair_chart(total_changes_chart, use_container_width=True)
+
 
 # Add bottom image
 st.image("images/nbapic1.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
