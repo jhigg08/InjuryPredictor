@@ -4,47 +4,75 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # Streamlit App Title
-st.title("NBA Injury Predictor")
+st.title("NBA Injury Predictor by Position")
 
-# Step 1: Upload CSV Files
-uploaded_files = st.file_uploader(
-    "Upload Player Stats CSV Files (one or more):",
-    accept_multiple_files=True,
-    type=["csv"]
-)
+# Define available players and their corresponding CSVs
+positions = {
+    "Point Guard": {
+        "Derrick Rose": "data/Derrick_Rose_Stats.csv",
+        "Jamal Murray": "data/Jamal_Murray_Stats.csv",
+        "Rajon Rondo": "data/Rajon_Rondo_Stats.csv",
+        "Shaun Livingston": "data/Shaun_Livingston_Stats.csv",
+        "Dante Exum": "data/Dante_Exum_Stats.csv",
+    },
+    "Shooting Guard": {
+        "Kobe Bryant": "data/Kobe_Bryant_Stats.csv",
+        "Wesley Matthews": "data/Wesley_Matthews_Stats.csv",
+        "Brandon Jennings": "data/Brandon_Jennings_Stats.csv",
+        "Rodney Hood": "data/Rodney_Hood_Stats.csv",
+    },
+    "Small Forward": {
+        "Kawhi Leonard": "data/Kawhi_Leonard_Stats.csv",
+        "Jimmy Butler": "data/Jimmy_Butler_Stats.csv",
+        "Danilo Gallinari": "data/Danilo_Gallinari_Stats.csv",
+        "Otto Porter Jr.": "data/Otto_Porter_Stats.csv",
+    },
+    "Power Forward": {
+        "Blake Griffin": "data/Blake_Griffin_Stats.csv",
+        "Kevin Love": "data/Kevin_Love_Stats.csv",
+        "Anthony Davis": "data/Anthony_Davis_Stats.csv",
+        "Amar’e Stoudemire": "data/Amare_Stoudemire_Stats.csv",
+    },
+    "Center": {
+        "Yao Ming": "data/Yao_Ming_Stats.csv",
+        "Bill Walton": "data/Bill_Walton_Stats.csv",
+        "Zydrunas Ilgauskas": "data/Zydrunas_Ilgauskas_Stats.csv",
+    },
+}
 
-if uploaded_files:
+# Step 1: Select Position
+selected_position = st.selectbox("Select Position:", list(positions.keys()))
+
+if selected_position:
+    # Step 2: Load All Players for the Position
+    players = positions[selected_position]
     dataframes = []
     injury_years = {}
 
-    # Step 2: Process Uploaded Files
-    for uploaded_file in uploaded_files:
-        # Read each file into a DataFrame
-        df = pd.read_csv(uploaded_file)
+    for player_name, file_path in players.items():
+        try:
+            # Load each player's data
+            df = pd.read_csv(file_path)
 
-        # Extract player name from the file name
-        player_name = uploaded_file.name.replace("_Stats.csv", "").replace("_", " ").title()
+            # Allow user to input injury year for the player
+            injury_year = st.number_input(
+                f"Enter the injury year for {player_name}:", min_value=1900, max_value=2100, step=1
+            )
+            injury_years[player_name] = injury_year
 
-        # Allow user to input injury year for the player
-        injury_year = st.number_input(
-            f"Enter the injury year for {player_name}:", min_value=1900, max_value=2100, step=1
-        )
+            # Add player name column
+            df["Player"] = player_name
+            dataframes.append(df)
+        except FileNotFoundError:
+            st.error(f"File for {player_name} not found.")
 
-        # Store the injury year
-        injury_years[player_name] = injury_year
-
-        # Add Player Name column
-        df["Player"] = player_name
-        dataframes.append(df)
-
-    # Combine all DataFrames
+    # Combine all data for the position
     combined_df = pd.concat(dataframes, ignore_index=True)
 
     # Standardize column names
     combined_df.columns = combined_df.columns.str.strip().str.lower()
 
-    # Step 3: Clean the Data
-    # Replace "Did not play" with NaN
+    # Clean the data
     combined_df.replace("Did not play", pd.NA, inplace=True)
 
     # Convert numeric columns to proper types
@@ -57,24 +85,21 @@ if uploaded_files:
     # Drop rows with missing games or points
     combined_df.dropna(subset=["g", "pts"], inplace=True)
 
-    # Filter out seasons where players played fewer than the minimum games
+    # Filter out seasons with fewer than the minimum games played
     min_games_played = st.slider("Set Minimum Games Played to Include a Season:", min_value=1, max_value=82, value=65)
     combined_df = combined_df[combined_df["g"] >= min_games_played]
 
-    # Step 4: Add Pre- and Post-Injury Labels
+    # Add Pre- and Post-Injury Labels
     combined_df["injury_status"] = combined_df.apply(
         lambda row: "Pre-Injury" if int(row["season"][:4]) < injury_years.get(row["player"], 9999) else "Post-Injury",
         axis=1
     )
 
-    # Step 5: Analyze the Data
-    # Select only on-court performance stats
+    # Analyze On-Court Stats
     on_court_stats = [
         "fg", "fga", "fg%", "3p", "3pa", "3p%", "2p", "2pa", "2p%",
         "efg%", "ft", "fta", "ft%", "orb", "drb", "trb", "ast", "stl", "blk", "tov", "pts"
     ]
-
-    # Calculate combined averages for pre- and post-injury
     combined_stats = combined_df.groupby("injury_status")[on_court_stats].mean()
 
     # Calculate total changes
@@ -83,36 +108,19 @@ if uploaded_files:
     # Identify the stat with the greatest total change
     most_changed_stat = total_changes.abs().idxmax()
     max_total_change = total_changes[most_changed_stat]
-
-    # Determine if the change is positive or negative
     change_direction = "increased" if max_total_change > 0 else "decreased"
 
-    # Step 6: Display Results in Streamlit
-    st.subheader("Combined Pre/Post-Injury On-Court Averages")
+    # Display Results
+    st.subheader(f"Combined Pre/Post-Injury On-Court Averages for {selected_position}")
     st.dataframe(combined_stats)
 
-    st.subheader("Total Changes (Post-Injury - Pre-Injury)")
+    st.subheader(f"Total Changes (Post-Injury - Pre-Injury) for {selected_position}")
     st.dataframe(total_changes)
 
     st.markdown(f"**Statistic with the most total change:** {most_changed_stat}")
     st.markdown(f"**Total Change Value:** {max_total_change:.2f} ({change_direction})")
 
-    # Step 7: Visualizations
+    # Visualizations
     st.subheader("Visualizations")
-
-    # Combined averages bar chart
     st.bar_chart(combined_stats.T)
-
-    # Total changes bar chart
     st.bar_chart(total_changes)
-
-    # Option to download processed data
-    csv = combined_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        "Download Processed Data",
-        data=csv,
-        file_name="processed_player_stats.csv",
-        mime="text/csv"
-    )
-else:
-    st.warning("Please upload at least one CSV file to proceed.")
