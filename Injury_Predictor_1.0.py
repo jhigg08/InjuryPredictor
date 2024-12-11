@@ -128,59 +128,24 @@ if selected_position:
     st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
    # Visualizations
-# Prepare data for the combined stats chart (Pre vs Post Injury)
-combined_stats_melted = combined_stats.reset_index().melt(
-    id_vars="injury_status", var_name="Statistic", value_name="Value"
-)
+import altair as alt
 
-# Chart 1: Side-by-side bar chart for Pre-Injury and Post-Injury stats
-pre_post_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
-    x=alt.X("Statistic:N", title="Statistic", sort=None),
-    y=alt.Y("Value:Q", title="Average Value"),
+# Prepare data for visualization
+combined_stats_melted = combined_stats.reset_index().melt(id_vars="injury_status", var_name="Statistic", value_name="Value")
+
+# Create a side-by-side bar chart
+side_by_side_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
+    x=alt.X("Statistic:N", title="Statistic"),
+    y=alt.Y("Value:Q", title="Value"),
     color=alt.Color("injury_status:N", title="Injury Status"),
-    tooltip=["Statistic", "Value", "injury_status"]
+    column=alt.Column("injury_status:N", title=None, spacing=5)
 ).properties(
-    title="Pre-Injury vs Post-Injury Stats",
-    width=600,
+    width=300,  # Adjust width for better appearance
     height=400
 )
 
-# Prepare data for Total Changes chart
-total_changes_df = total_changes.reset_index()
-total_changes_df.columns = ["Statistic", "Value"]
+st.altair_chart(side_by_side_chart)
 
-# Chart 2: Bar chart for Total Changes
-total_changes_chart = alt.Chart(total_changes_df).mark_bar().encode(
-    x=alt.X("Statistic:N", title="Statistic", sort=None),
-    y=alt.Y("Value:Q", title="Total Change"),
-    tooltip=["Statistic", "Value"],
-    color=alt.condition(
-        alt.datum.Value > 0,
-        alt.value("green"),  # Positive changes in green
-        alt.value("red")     # Negative changes in red
-    )
-).properties(
-    title="Total Changes (Post-Injury - Pre-Injury)",
-    width=600,
-    height=400
-)
-
-# Chart 3: Combined Stats Chart (Stacked or as requested)
-combined_stats_chart = alt.Chart(combined_stats_melted).mark_bar().encode(
-    x=alt.X("Statistic:N", title="Statistic", sort=None),
-    y=alt.Y("Value:Q", title="Average Value"),
-    color=alt.Color("injury_status:N", title="Injury Status"),
-    tooltip=["Statistic", "Value", "injury_status"]
-).properties(
-    title="Combined Pre-Injury and Post-Injury Stats (Stacked)",
-    width=600,
-    height=400
-)
-
-# Display the three charts
-st.altair_chart(pre_post_chart)
-st.altair_chart(total_changes_chart)
-st.altair_chart(combined_stats_chart)
 
 
 # Add bottom image
