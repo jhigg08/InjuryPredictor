@@ -3,8 +3,9 @@ import pandas as pd
 import streamlit as st
 
 # Streamlit App Title
-st.image("images/nbapic1.jpg", caption="Amar'e Stoudemire - Knicks", use_container_width=True)
 st.title("NBA Injury Predictor by Position")
+st.image("images/nbapic4.jpg", caption="Amar'e Stoudemire - Knicks", use_container_width=True)
+
 
 # Define available players and their corresponding CSVs
 positions = {
@@ -87,7 +88,7 @@ if selected_position:
 
     # Filter out seasons with fewer than the minimum games played
     min_games_played = st.slider("Set Minimum Games Played to Include a Season:", min_value=1, max_value=82, value=65)
-    st.image("images/nbapic2.jpg", caption="Jimmy Butler - Heat", use_container_width=True)  # Image after slider
+    st.image("images/nbapic3.jpg", caption="Jimmy Butler - Heat", use_container_width=True)  # Image after slider
 
     combined_df = combined_df[combined_df["g"] >= min_games_played]
 
@@ -116,7 +117,7 @@ if selected_position:
     st.subheader(f"Combined Pre/Post-Injury On-Court Averages for {selected_position}")
     st.dataframe(combined_stats)
 
-    st.image("images/nbapic3.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
+    st.image("images/nbapic2.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)  # Before visualizations
 
     st.subheader(f"Total Changes (Post-Injury - Pre-Injury) for {selected_position}")
     st.dataframe(total_changes)
@@ -130,4 +131,4 @@ if selected_position:
     st.bar_chart(total_changes)
 
 # Add bottom image
-st.image("images/nbapic4.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
+st.image("images/nbapic1.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
