@@ -1,10 +1,16 @@
 # Import necessary libraries
 import pandas as pd
-import matplotlib.pyplot as plt
 import streamlit as st
 
 # Streamlit App Title
 st.title("NBA Injury Predictor by Position")
+
+# Display Static Images
+st.header("NBA Highlights")
+st.image("images/nbapic1.jpg", caption="Amar'e Stoudemire - Knicks", use_column_width=True)
+st.image("images/nbapic2.jpg", caption="Jimmy Butler - Heat", use_column_width=True)
+st.image("images/nbapic3.jpg", caption="Kawhi Leonard - Raptors", use_column_width=True)
+st.image("images/nbapic4.jpg", caption="Kobe Bryant - Lakers", use_column_width=True)
 
 # Define available players and their corresponding CSVs
 positions = {
