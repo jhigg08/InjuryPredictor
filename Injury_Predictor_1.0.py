@@ -5,8 +5,20 @@ import streamlit as st
 # Streamlit App Title
 st.title("NBA Injury Predictor by Position")
 
+# Add custom CSS for larger images
+st.markdown("""
+    <style>
+    img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Set up layout with columns
-left_col, middle_col, right_col = st.columns([1, 3, 1])  # Adjust column width proportions
+left_col, middle_col, right_col = st.columns([2, 3, 2])  # Wider left and right columns
 
 # Add images to the left and right columns
 with left_col:
@@ -16,6 +28,7 @@ with left_col:
 with right_col:
     st.image("images/nbapic3.jpg", caption="Kawhi Leonard - Raptors", use_container_width=True)
     st.image("images/nbapic4.jpg", caption="Kobe Bryant - Lakers", use_container_width=True)
+
 
 
 # Add content to the middle column
